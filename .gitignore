@@ -1,1 +1,1 @@
-Nothing should be ignored based on the provided file changes. The changes only include a source file (.html) and a documentation file (.md), which are not build artifacts, dependencies, or temporary files.
+Nothing needs to be ignored based on the provided file changes. The added file (`linear_list_animation_sync.html`) and modified file (`README.md`) are both source/config files that should be tracked in version control.

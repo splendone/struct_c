@@ -5,6 +5,7 @@
 ## 文件说明
 
 - `linear_list_animation.html` - 主要的动画演示页面，包含完整的HTML、CSS和JavaScript代码
+- `linear_list_animation_sync.html` - 同步高亮版本，代码和动画同步高亮，并在一屏内显示
 
 ## 功能特点
 
