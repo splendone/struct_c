@@ -1,0 +1,1 @@
+Nothing should be ignored based on the provided file changes. The changes only include a source file (.html) and a documentation file (.md), which are not build artifacts, dependencies, or temporary files.
