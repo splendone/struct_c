@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>单链表插入操作动画演示</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background-color: #2c3e50;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+        }
+        
+        .code-section {
+            flex: 1;
+            min-width: 400px;
+            padding: 20px;
+            border-right: 1px solid #eee;
+        }
+        
+        .animation-section {
+            flex: 1;
+            min-width: 400px;
+            padding: 20px;
+        }
+        
+        pre {
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            padding: 15px;
+            border-radius: 5px;
+            overflow: auto;
+            line-height: 1.5;
+        }
+        
+        .line {
+            padding: 2px 0;
+        }
+        
+        .highlight {
+            background-color: #e74c3c;
+            padding: 2px 5px;
+            border-radius: 3px;
+        }
+        
+        .controls {
+            padding: 20px;
+            text-align: center;
+            background-color: #ecf0f1;
+            border-top: 1px solid #ddd;
+        }
+        
+        button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #3498db;
+            color: white;
+            cursor: pointer;
+            font-size: 16px;
+        }
+        
+        button:hover {
+            background-color: #2980b9;
+        }
+        
+        button:disabled {
+            background-color: #bdc3c7;
+            cursor: not-allowed;
+        }
+        
+        .input-controls {
+            margin-bottom: 20px;
+        }
+        
+        .input-controls input {
+            padding: 8px;
+            margin: 0 5px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            width: 80px;
+        }
+        
+        .node {
+            position: relative;
+            display: inline-block;
+            margin: 10px;
+            padding: 15px;
+            border: 2px solid #3498db;
+            border-radius: 5px;
+            background-color: #ecf0f1;
+            min-width: 80px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+        
+        .node.highlight {
+            border-color: #e74c3c;
+            background-color: #fadbd8;
+            transform: scale(1.1);
+        }
+        
+        .node.data-part {
+            background-color: #d5dbdb;
+        }
+        
+        .node.pointer-part {
+            background-color: #aed6f1;
+        }
+        
+        .node-value {
+            font-weight: bold;
+            font-size: 18px;
+            margin-bottom: 5px;
+        }
+        
+        .node-pointer {
+            font-size: 14px;
+            color: #7f8c8d;
+        }
+        
+        .arrow {
+            position: absolute;
+            height: 2px;
+            background-color: #34495e;
+            transform-origin: left center;
+        }
+        
+        .memory-visualization {
+            margin-top: 20px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #f9f9f9;
+        }
+        
+        .step-description {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e8f6f3;
+            border-left: 4px solid #1abc9c;
+            font-style: italic;
+        }
+        
+        @media (max-width: 768px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .code-section, .animation-section {
+                border-right: none;
+                border-bottom: 1px solid #eee;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>单链表插入操作动画演示</h1>
+        </div>
+        
+        <div class="content">
+            <div class="code-section">
+                <h2>C语言代码</h2>
+                <pre id="code-display">
+<code class="line" id="line0"><span class="code-text">typedef struct Node {</span></code>
+<code class="line" id="line1"><span class="code-text">    int data;              // 数据域</span></code>
+<code class="line" id="line2"><span class="code-text">    struct Node* next;     // 指针域</span></code>
+<code class="line" id="line3"><span class="code-text">} Node;</span></code>
+<br>
+<code class="line" id="line5"><span class="code-text">// 在第i个位置插入元素e</span></code>
+<code class="line" id="line6"><span class="code-text">int ListInsert(Node* head, int i, int e) {</span></code>
+<code class="line" id="line7"><span class="code-text">    Node* p = head;          // p指向头结点</span></code>
+<code class="line" id="line8"><span class="code-text">    int j = 0;               // 计数器，初始为0</span></code>
+<code class="line" id="line9"><span class="code-text">    while(p && j<i-1) {      // 寻找第i-1个结点</span></code>
+<code class="line" id="line10"><span class="code-text">        p = p->next;         // p向后移动</span></code>
+<code class="line" id="line11"><span class="code-text">        ++j;                 // 计数器加1</span></code>
+<code class="line" id="line12"><span class="code-text">    }</span></code>
+<code class="line" id="line13"><span class="code-text">    if(!p || j>i-1)          // i值不合法</span></code>
+<code class="line" id="line14"><span class="code-text">        return 0;            // 返回失败</span></code>
+<code class="line" id="line15"><span class="code-text">    Node* s = (Node*)malloc(sizeof(Node)); // 创建新结点s</span></code>
+<code class="line" id="line16"><span class="code-text">    s->data = e;             // 将e赋值给s的数据域</span></code>
+<code class="line" id="line17"><span class="code-text">    s->next = p->next;       // 将p的后继结点赋值给s的后继</span></code>
+<code class="line" id="line18"><span class="code-text">    p->next = s;             // 将s赋值给p的后继</span></code>
+<code class="line" id="line19"><span class="code-text">    return 1;                // 插入成功返回1</span></code>
+<code class="line" id="line20"><span class="code-text">}</span></code>
+</pre>
+            </div>
+            
+            <div class="animation-section">
+                <h2>内存可视化</h2>
+                
+                <div class="input-controls">
+                    <label>插入位置: </label>
+                    <input type="number" id="insert-position" min="1" value="2" max="6">
+                    <label>插入数据: </label>
+                    <input type="number" id="insert-data" value="66" min="-999" max="999">
+                    <button id="update-btn">更新演示</button>
+                </div>
+                
+                <div class="memory-visualization">
+                    <div id="linked-list-container">
+                        <!-- 链表将在这里动态生成 -->
+                    </div>
+                </div>
+                
+                <div class="step-description" id="step-description">
+                    欢迎使用单链表插入操作演示！请输入要插入的位置和数据，然后点击"更新演示"开始。
+                </div>
+            </div>
+        </div>
+        
+        <div class="controls">
+            <button id="prev-btn" disabled>上一步</button>
+            <button id="start-btn">开始演示</button>
+            <button id="next-btn">下一步</button>
+            <button id="reset-btn">重置</button>
+        </div>
+    </div>
+
+    <script>
+        // 演示数据
+        let demoData = {
+            originalList: [11, 22, 33, 44, 55],
+            insertPos: 2,
+            insertData: 66,
+            currentStep: 0,
+            isAnimating: false
+        };
+
+        // 步骤描述
+        const stepDescriptions = [
+            "欢迎使用单链表插入操作演示！请查看初始链表状态。",
+            "开始插入操作：p指向头结点，j=0。",
+            "寻找第i-1个节点：p向后移动，j增加。",
+            "找到插入位置：p指向第i-1个节点。",
+            "创建新节点s，存储要插入的数据。",
+            "执行插入操作：调整指针连接。",
+            "插入完成：新节点已成功插入链表。"
+        ];
+
+        // 代码高亮行
+        const highlightLines = [
+            [], // 初始状态
+            [7, 8], // p=head, j=0
+            [9, 10, 11], // while循环
+            [9, 10, 11], // 找到位置
+            [15, 16], // 创建新节点
+            [17, 18], // 调整指针
+            [19] // 返回成功
+        ];
+
+        // 初始化页面
+        document.addEventListener('DOMContentLoaded', function() {
+            updateLinkedListDisplay();
+            setupEventListeners();
+        });
+
+        // 设置事件监听器
+        function setupEventListeners() {
+            document.getElementById('start-btn').addEventListener('click', startAnimation);
+            document.getElementById('next-btn').addEventListener('click', nextStep);
+            document.getElementById('prev-btn').addEventListener('click', prevStep);
+            document.getElementById('reset-btn').addEventListener('click', resetAnimation);
+            document.getElementById('update-btn').addEventListener('click', updateDemoData);
+        }
+
+        // 更新演示数据
+        function updateDemoData() {
+            const pos = parseInt(document.getElementById('insert-position').value);
+            const data = parseInt(document.getElementById('insert-data').value);
+            
+            if (pos < 1 || pos > demoData.originalList.length + 1) {
+                alert(`插入位置应在1到${demoData.originalList.length + 1}之间`);
+                return;
+            }
+            
+            demoData.insertPos = pos;
+            demoData.insertData = data;
+            resetAnimation();
+            updateLinkedListDisplay();
+        }
+
+        // 开始动画
+        function startAnimation() {
+            if (demoData.isAnimating) return;
+            demoData.isAnimating = true;
+            document.getElementById('start-btn').disabled = true;
+            
+            let step = 0;
+            const interval = setInterval(() => {
+                if (step < 6) {
+                    demoData.currentStep = step;
+                    updateDisplay();
+                    step++;
+                } else {
+                    clearInterval(interval);
+                    demoData.isAnimating = false;
+                    document.getElementById('start-btn').disabled = false;
+                }
+            }, 2000);
+        }
+
+        // 下一步
+        function nextStep() {
+            if (demoData.currentStep < 6) {
+                demoData.currentStep++;
+                updateDisplay();
+            }
+        }
+
+        // 上一步
+        function prevStep() {
+            if (demoData.currentStep > 0) {
+                demoData.currentStep--;
+                updateDisplay();
+            }
+        }
+
+        // 重置动画
+        function resetAnimation() {
+            demoData.currentStep = 0;
+            demoData.isAnimating = false;
+            document.getElementById('start-btn').disabled = false;
+            updateDisplay();
+        }
+
+        // 更新显示
+        function updateDisplay() {
+            updateCodeHighlight();
+            updateLinkedListDisplay();
+            updateStepDescription();
+            updateButtonStates();
+        }
+
+        // 更新代码高亮
+        function updateCodeHighlight() {
+            // 移除所有高亮
+            const lines = document.querySelectorAll('.line');
+            lines.forEach(line => {
+                line.classList.remove('highlight');
+            });
+            
+            // 高亮当前行
+            const currentLines = highlightLines[demoData.currentStep];
+            currentLines.forEach(lineIndex => {
+                const lineElement = document.getElementById(`line${lineIndex}`);
+                if (lineElement) {
+                    lineElement.classList.add('highlight');
+                }
+            });
+        }
+
+        // 更新链表显示
+        function updateLinkedListDisplay() {
+            const container = document.getElementById('linked-list-container');
+            container.innerHTML = '';
+            
+            // 创建头节点
+            const headNode = document.createElement('div');
+            headNode.className = 'node';
+            headNode.innerHTML = '<div class="node-value">HEAD</div><div class="node-pointer">0x1000</div>';
+            if (demoData.currentStep >= 1) {
+                headNode.classList.add('highlight');
+            }
+            container.appendChild(headNode);
+            
+            // 创建链表节点
+            const list = [...demoData.originalList];
+            if (demoData.currentStep >= 4) {
+                // 在指定位置插入新数据
+                list.splice(demoData.insertPos - 1, 0, demoData.insertData);
+            }
+            
+            list.forEach((value, index) => {
+                const node = document.createElement('div');
+                node.className = 'node';
+                
+                // 确定节点是否需要高亮
+                if (demoData.currentStep === 1 && index === 0) {
+                    // p指向头节点
+                    node.classList.add('highlight');
+                } else if (demoData.currentStep === 2 && index === Math.min(demoData.insertPos - 1, index)) {
+                    // 在寻找过程中，p指向当前节点
+                    if (index <= demoData.insertPos - 1) {
+                        node.classList.add('highlight');
+                    }
+                } else if (demoData.currentStep === 3 && index === demoData.insertPos - 1) {
+                    // 找到插入位置，p指向第i-1个节点
+                    node.classList.add('highlight');
+                } else if (demoData.currentStep >= 4 && value === demoData.insertData) {
+                    // 新插入的节点
+                    node.classList.add('highlight');
+                }
+                
+                node.innerHTML = `
+                    <div class="node-value">${value}</div>
+                    <div class="node-pointer">0x${1000 + (index + 1) * 100}</div>
+                `;
+                container.appendChild(node);
+                
+                // 添加箭头（除了最后一个节点）
+                if (index < list.length - 1) {
+                    const arrow = document.createElement('div');
+                    arrow.className = 'arrow';
+                    arrow.style.width = '50px';
+                    arrow.style.top = '50%';
+                    arrow.style.left = '100%';
+                    container.appendChild(arrow);
+                }
+            });
+        }
+
+        // 更新步骤描述
+        function updateStepDescription() {
+            const descElement = document.getElementById('step-description');
+            descElement.textContent = stepDescriptions[demoData.currentStep];
+        }
+
+        // 更新按钮状态
+        function updateButtonStates() {
+            document.getElementById('prev-btn').disabled = (demoData.currentStep === 0);
+            document.getElementById('next-btn').disabled = (demoData.currentStep === 6);
+        }
+    </script>
+</body>
+</html>
