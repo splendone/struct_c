@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>单链表插入操作动画演示</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            margin: 0;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            padding: 20px;
+        }
+        
+        h1 {
+            text-align: center;
+            color: #333;
+            margin-bottom: 30px;
+        }
+        
+        .content {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+        
+        .code-section {
+            flex: 1;
+            min-width: 500px;
+            background-color: #2d2d2d;
+            color: #f8f8f2;
+            padding: 15px;
+            border-radius: 5px;
+            overflow: auto;
+        }
+        
+        .memory-section {
+            flex: 1;
+            min-width: 500px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 5px;
+            background-color: #fafafa;
+        }
+        
+        .controls {
+            text-align: center;
+            margin: 20px 0;
+            padding: 15px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+        }
+        
+        button {
+            margin: 0 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 4px;
+        }
+        
+        button:hover {
+            background-color: #0056b3;
+        }
+        
+        button:disabled {
+            background-color: #6c757d;
+            cursor: not-allowed;
+        }
+        
+        .code-line {
+            padding: 3px 5px;
+            margin: 2px 0;
+            border-radius: 3px;
+        }
+        
+        .highlighted {
+            background-color: #ffeb3b;
+            color: black;
+        }
+        
+        .memory-block {
+            display: flex;
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            background-color: white;
+        }
+        
+        .node {
+            display: flex;
+            align-items: center;
+            margin: 5px 0;
+            padding: 10px;
+            border: 2px solid #007bff;
+            border-radius: 5px;
+            background-color: #e3f2fd;
+            min-height: 50px;
+        }
+        
+        .node-value {
+            flex: 1;
+            text-align: center;
+            font-weight: bold;
+            font-size: 18px;
+        }
+        
+        .node-pointer {
+            flex: 1;
+            text-align: center;
+            font-size: 14px;
+            color: #666;
+        }
+        
+        .arrow {
+            width: 30px;
+            height: 2px;
+            background-color: #333;
+            margin: 0 10px;
+            align-self: center;
+        }
+        
+        .head-pointer {
+            position: absolute;
+            top: -25px;
+            left: 50%;
+            transform: translateX(-100%);
+            color: red;
+            font-weight: bold;
+            white-space: nowrap;
+        }
+        
+        .step-info {
+            margin-top: 15px;
+            padding: 10px;
+            background-color: #e9ecef;
+            border-radius: 5px;
+            font-size: 14px;
+        }
+        
+        .current-node {
+            border-color: #ff5722;
+            background-color: #ffebee;
+        }
+        
+        .new-node {
+            border-color: #4caf50;
+            background-color: #e8f5e8;
+        }
+        
+        @media (max-width: 1200px) {
+            .content {
+                flex-direction: column;
+            }
+            
+            .code-section, .memory-section {
+                min-width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>单链表插入操作动画演示</h1>
+        
+        <div class="controls">
+            <button id="startBtn">开始演示</button>
+            <button id="prevBtn" disabled>上一步</button>
+            <button id="nextBtn" disabled>下一步</button>
+            <button id="resetBtn">重置</button>
+        </div>
+        
+        <div class="content">
+            <div class="code-section">
+                <h3 style="color: white; margin-top: 0;">C语言代码</h3>
+                <div id="codeDisplay">
+                    <div class="code-line" id="line1">typedef struct Node {</div>
+                    <div class="code-line" id="line2">    int data;</div>
+                    <div class="code-line" id="line3">    struct Node* next;</div>
+                    <div class="code-line" id="line4">} Node;</div>
+                    <br>
+                    <div class="code-line" id="line6">// 在链表第i个位置插入元素e</div>
+                    <div class="code-line" id="line7">int ListInsert(Node* L, int i, int e) {</div>
+                    <div class="code-line" id="line8">    Node* p = L;</div>
+                    <div class="code-line" id="line9">    int j = 0;</div>
+                    <br>
+                    <div class="code-line" id="line11">    // 找到第i-1个节点</div>
+                    <div class="code-line" id="line12">    while(p && j < i-1) {</div>
+                    <div class="code-line" id="line13">        p = p->next;</div>
+                    <div class="code-line" id="line14">        ++j;</div>
+                    <div class="code-line" id="line15">    }</div>
+                    <br>
+                    <div class="code-line" id="line17">    // 如果p为空或j>i-1，则插入位置不合法</div>
+                    <div class="code-line" id="line18">    if(!p || j > i-1) {</div>
+                    <div class="code-line" id="line19">        return 0;</div>
+                    <div class="code-line" id="line20">    }</div>
+                    <br>
+                    <div class="code-line" id="line22">    // 创建新节点</div>
+                    <div class="code-line" id="line23">    Node* s = (Node*)malloc(sizeof(Node));</div>
+                    <div class="code-line" id="line24">    if(!s) return 0;</div>
+                    <br>
+                    <div class="code-line" id="line26">    s->data = e;</div>
+                    <div class="code-line" id="line27">    s->next = p->next;</div>
+                    <div class="code-line" id="line28">    p->next = s;</div>
+                    <div class="code-line" id="line29">    return 1;</div>
+                    <div class="code-line" id="line30">}</div>
+                </div>
+            </div>
+            
+            <div class="memory-section">
+                <h3>内存可视化</h3>
+                <div id="memoryDisplay">
+                    <div style="position: relative; padding-top: 30px;">
+                        <div class="head-pointer">head</div>
+                        <div id="listContainer" style="display: flex; flex-wrap: wrap; align-items: flex-start;">
+                            <!-- 链表节点将通过JavaScript动态生成 -->
+                        </div>
+                    </div>
+                </div>
+                <div class="step-info" id="stepInfo">
+                    点击"开始演示"按钮开始动画
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 演示数据
+        const steps = [
+            {
+                description: "初始化链表，p指向头节点，j=0",
+                codeLine: [8, 9],
+                nodes: [
+                    {id: 'head', data: 'head', next: 'node1', isHead: true},
+                    {id: 'node1', data: 1, next: 'node2'},
+                    {id: 'node2', data: 2, next: 'node3'},
+                    {id: 'node3', data: 3, next: null}
+                ],
+                currentNode: 'head',
+                newNode: null
+            },
+            {
+                description: "第一次循环，p=p->next，j++，p指向第一个节点",
+                codeLine: [13, 14],
+                nodes: [
+                    {id: 'head', data: 'head', next: 'node1', isHead: true},
+                    {id: 'node1', data: 1, next: 'node2'},
+                    {id: 'node2', data: 2, next: 'node3'},
+                    {id: 'node3', data: 3, next: null}
+                ],
+                currentNode: 'node1',
+                newNode: null
+            },
+            {
+                description: "第二次循环，p=p->next，j++，p指向第二个节点",
+                codeLine: [13, 14],
+                nodes: [
+                    {id: 'head', data: 'head', next: 'node1', isHead: true},
+                    {id: 'node1', data: 1, next: 'node2'},
+                    {id: 'node2', data: 2, next: 'node3'},
+                    {id: 'node3', data: 3, next: null}
+                ],
+                currentNode: 'node2',
+                newNode: null
+            },
+            {
+                description: "退出循环，找到第i-1个节点，创建新节点s",
+                codeLine: [23, 24],
+                nodes: [
+                    {id: 'head', data: 'head', next: 'node1', isHead: true},
+                    {id: 'node1', data: 1, next: 'node2'},
+                    {id: 'node2', data: 2, next: 'node3'},
+                    {id: 'node3', data: 3, next: null}
+                ],
+                currentNode: 'node2',
+                newNode: {id: 'newNode', data: 88, next: null}
+            },
+            {
+                description: "设置新节点数据 s->data = e",
+                codeLine: [26],
+                nodes: [
+                    {id: 'head', data: 'head', next: 'node1', isHead: true},
+                    {id: 'node1', data: 1, next: 'node2'},
+                    {id: 'node2', data: 2, next: 'node3'},
+                    {id: 'node3', data: 3, next: null}
+                ],
+                currentNode: 'node2',
+                newNode: {id: 'newNode', data: 88, next: 'node3'}
+            },
+            {
+                description: "设置新节点指针 s->next = p->next",
+                codeLine: [27],
+                nodes: [
+                    {id: 'head', data: 'head', next: 'node1', isHead: true},
+                    {id: 'node1', data: 1, next: 'node2'},
+                    {id: 'node2', data: 2, next: 'newNode'},
+                    {id: 'node3', data: 3, next: null}
+                ],
+                currentNode: 'node2',
+                newNode: {id: 'newNode', data: 88, next: 'node3'}
+            },
+            {
+                description: "更新前驱节点指针 p->next = s，插入完成！",
+                codeLine: [28],
+                nodes: [
+                    {id: 'head', data: 'head', next: 'node1', isHead: true},
+                    {id: 'node1', data: 1, next: 'node2'},
+                    {id: 'node2', data: 2, next: 'newNode'},
+                    {id: 'newNode', data: 88, next: 'node3'},
+                    {id: 'node3', data: 3, next: null}
+                ],
+                currentNode: 'node2',
+                newNode: null
+            }
+        ];
+
+        // 当前步骤
+        let currentStep = 0;
+        let animationActive = false;
+
+        // DOM元素
+        const startBtn = document.getElementById('startBtn');
+        const prevBtn = document.getElementById('prevBtn');
+        const nextBtn = document.getElementById('nextBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const stepInfo = document.getElementById('stepInfo');
+        const listContainer = document.getElementById('listContainer');
+
+        // 初始化
+        function init() {
+            updateDisplay();
+            updateButtons();
+        }
+
+        // 更新显示
+        function updateDisplay() {
+            // 清除所有高亮
+            document.querySelectorAll('.code-line').forEach(line => {
+                line.classList.remove('highlighted');
+            });
+            
+            // 高亮当前行
+            steps[currentStep].codeLine.forEach(lineNum => {
+                const lineElement = document.getElementById(`line${lineNum}`);
+                if (lineElement) {
+                    lineElement.classList.add('highlighted');
+                }
+            });
+            
+            // 更新步骤信息
+            stepInfo.textContent = steps[currentStep].description;
+            
+            // 更新内存显示
+            updateMemoryDisplay();
+        }
+
+        // 更新内存显示
+        function updateMemoryDisplay() {
+            listContainer.innerHTML = '';
+            
+            const nodes = [...steps[currentStep].nodes];
+            const newNode = steps[currentStep].newNode;
+            
+            // 如果有新节点，添加到节点列表
+            if (newNode) {
+                nodes.push(newNode);
+            }
+            
+            // 创建节点元素
+            for (let i = 0; i < nodes.length; i++) {
+                const node = nodes[i];
+                
+                // 跳过非连接节点（即新节点但不是当前连接的一部分）
+                if (newNode && node.id === newNode.id && !isNodeInChain(node.id, nodes)) {
+                    continue;
+                }
+                
+                const nodeDiv = document.createElement('div');
+                nodeDiv.className = 'node';
+                if (node.id === steps[currentStep].currentNode) {
+                    nodeDiv.classList.add('current-node');
+                } else if (newNode && node.id === newNode.id) {
+                    nodeDiv.classList.add('new-node');
+                }
+                
+                const valueDiv = document.createElement('div');
+                valueDiv.className = 'node-value';
+                valueDiv.textContent = node.data;
+                
+                const pointerDiv = document.createElement('div');
+                pointerDiv.className = 'node-pointer';
+                pointerDiv.textContent = node.next ? `→ ${node.next}` : '→ NULL';
+                
+                nodeDiv.appendChild(valueDiv);
+                nodeDiv.appendChild(pointerDiv);
+                
+                listContainer.appendChild(nodeDiv);
+                
+                // 如果不是最后一个节点，添加箭头
+                if (i < nodes.length - 1 && node.next) {
+                    const arrowDiv = document.createElement('div');
+                    arrowDiv.className = 'arrow';
+                    listContainer.appendChild(arrowDiv);
+                }
+            }
+        }
+
+        // 检查节点是否在当前链中
+        function isNodeInChain(nodeId, nodes) {
+            for (const node of nodes) {
+                if (node.next === nodeId) {
+                    return true;
+                }
+            }
+            return nodeId === 'head'; // 头节点始终在链中
+        }
+
+        // 更新按钮状态
+        function updateButtons() {
+            prevBtn.disabled = currentStep === 0;
+            nextBtn.disabled = currentStep === steps.length - 1;
+            startBtn.disabled = animationActive;
+        }
+
+        // 下一步
+        function nextStep() {
+            if (currentStep < steps.length - 1) {
+                currentStep++;
+                updateDisplay();
+                updateButtons();
+            }
+        }
+
+        // 上一步
+        function prevStep() {
+            if (currentStep > 0) {
+                currentStep--;
+                updateDisplay();
+                updateButtons();
+            }
+        }
+
+        // 重置
+        function reset() {
+            currentStep = 0;
+            animationActive = false;
+            updateDisplay();
+            updateButtons();
+        }
+
+        // 开始演示
+        function startAnimation() {
+            animationActive = true;
+            updateButtons();
+            
+            // 自动播放演示
+            let step = 0;
+            const interval = setInterval(() => {
+                if (step < steps.length) {
+                    currentStep = step;
+                    updateDisplay();
+                    step++;
+                } else {
+                    clearInterval(interval);
+                    animationActive = false;
+                    updateButtons();
+                }
+            }, 2000); // 每2秒切换一步
+        }
+
+        // 事件监听器
+        startBtn.addEventListener('click', startAnimation);
+        nextBtn.addEventListener('click', nextStep);
+        prevBtn.addEventListener('click', prevStep);
+        resetBtn.addEventListener('click', reset);
+
+        // 初始化页面
+        init();
+    </script>
+</body>
+</html>
