@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>单链表结构可视化</title>
+    <title>单链表结构可视化 - Debug版本</title>
     <style>
         body {
             font-family: Arial, sans-serif;
@@ -42,8 +42,6 @@
             padding: 20px;
             border: 2px dashed #ddd;
             margin: 20px 0;
-            position: relative;
-            z-index: 2;
         }
         
         .node {
@@ -86,19 +84,11 @@
             color: #666;
         }
         
-        .list-container-wrapper {
+        .canvas-container {
             position: relative;
             width: 100%;
-        }
-        
-        .canvas-container {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
+            height: 200px;
             margin-top: 20px;
-            z-index: 1;
         }
         
         canvas {
@@ -107,7 +97,7 @@
             left: 0;
             width: 100%;
             height: 100%;
-            z-index: 1;
+            border: 1px solid #ccc; /* 添加边框以便调试 */
         }
         
         .null-pointer {
@@ -188,11 +178,22 @@
             font-weight: bold;
             color: #333;
         }
+        
+        /* 添加调试信息显示区域 */
+        .debug-info {
+            background-color: #f8f9fa;
+            padding: 10px;
+            margin: 10px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 14px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>单链表结构可视化</h1>
+        <h1>单链表结构可视化 - Debug版本</h1>
         
         <div class="explanation">
             <p><strong>说明：</strong>单链表中的每个节点包含两个部分：数据域（存储数据）和指针域（指向下一个节点）。这个可视化展示了这两个部分如何在内存中组织。</p>
@@ -218,16 +219,14 @@
             <span>指针域</span>
         </div>
         
-        <div class="list-container-wrapper">
-            <div class="list-container" id="listContainer">
-                <!-- 节点将通过JavaScript动态生成 -->
-            </div>
-            <div class="canvas-container">
-                <canvas id="arrowCanvas"></canvas>
-            </div>
+        <div class="list-container" id="listContainer">
+            <!-- 节点将通过JavaScript动态生成 -->
+        </div>
+        <div class="canvas-container">
+            <canvas id="arrowCanvas"></canvas>
         </div>
         
-        <div class="debug-info" id="debugInfo" style="display:none;">
+        <div class="debug-info" id="debugInfo">
             调试信息：<br>
             - Canvas状态: <span id="canvasStatus">未知</span><br>
             - 节点数量: <span id="nodeCount">0</span><br>
@@ -238,13 +237,13 @@
             <input type="text" id="dataInput" placeholder="输入数据" />
             <button onclick="addNode()">添加节点</button>
             <button onclick="clearList()">清空列表</button>
-            <button onclick="toggleDebug()">切换调试</button>
+            <button onclick="debugDraw()">调试绘制</button>
         </div>
     </div>
 
     <script>
         let arrowCallCount = 0; // 调试计数器
-
+        
         // 单链表节点构造函数
         class ListNode {
             constructor(data) {
@@ -285,6 +284,7 @@
                 if (!this.head) {
                     container.innerHTML = '<p style="color: #666;">链表为空，请添加节点</p>';
                     this.drawArrows(); // 清除画布
+                    document.getElementById('nodeCount').textContent = '0';
                     return;
                 }
                 
@@ -341,15 +341,18 @@
                 const canvas = document.getElementById('arrowCanvas');
                 const ctx = canvas.getContext('2d');
                 
+                console.log("Canvas element:", canvas);
+                console.log("Canvas context:", ctx);
+                
                 if (!ctx) {
                     console.error("无法获取canvas上下文");
+                    document.getElementById('canvasStatus').textContent = '错误：无法获取canvas上下文';
                     return;
                 }
                 
-                // 重置canvas大小 - 使用 clientWidth/clientHeight 作为备选
-                const container = document.querySelector('.canvas-container');
-                canvas.width = container.clientWidth || 800;
-                canvas.height = container.clientHeight || 200;
+                // 重置canvas大小
+                canvas.width = canvas.offsetWidth || canvas.clientWidth;
+                canvas.height = canvas.offsetHeight || canvas.clientHeight;
                 
                 console.log(`Canvas尺寸: ${canvas.width} x ${canvas.height}`);
                 
@@ -358,9 +361,10 @@
                 
                 // 获取所有节点元素
                 const nodes = document.querySelectorAll('.node');
+                console.log(`找到 ${nodes.length} 个节点`);
                 
                 if (nodes.length <= 1) {
-                    console.log("节点数量不足，无需绘制箭头");
+                    console.log("节点数量 <= 1，无需绘制箭头");
                     return; // 只有一个或没有节点时不需要绘制箭头
                 }
                 
@@ -370,38 +374,22 @@
                     const nextNode = nodes[i + 1];
                     
                     // 获取指针部分的位置（箭头起点）
-                    const currentPointer = currentNode.querySelector('.pointer-part');
-                    const currentRect = currentPointer.getBoundingClientRect();
-                    const canvasRect = canvas.getBoundingClientRect();
+                    const currentRect = currentNode.querySelector('.pointer-part').getBoundingClientRect();
+                    const containerRect = document.getElementById('listContainer').getBoundingClientRect();
                     
-                    // 计算相对于canvas的位置
-                    // 从当前节点指针域的右侧中间位置开始
-                    const startX = currentRect.right - canvasRect.left;
-                    const startY = currentRect.top - canvasRect.top + currentRect.height / 2;
+                    console.log(`节点 ${i} 指针部分位置:`, currentRect);
+                    console.log(`容器位置:`, containerRect);
+                    
+                    // 计算相对于容器的位置
+                    const startX = currentRect.left - containerRect.left + currentRect.width;
+                    const startY = currentRect.top - containerRect.top + currentRect.height / 2;
                     
                     // 获取下一个节点的左侧位置（箭头终点）
                     const nextRect = nextNode.getBoundingClientRect();
-                    const endX = nextRect.left - canvasRect.left;
-                    const endY = nextRect.top - canvasRect.top + nextRect.offsetHeight / 2;
+                    const endX = nextRect.left - containerRect.left;
+                    const endY = nextRect.top - containerRect.top + nextRect.offsetHeight / 2;
                     
-                    console.log(`Canvas Rect: left=${canvasRect.left}, top=${canvasRect.top}`);
-                    console.log(`Current Rect: right=${currentRect.right}, top=${currentRect.top}, height=${currentRect.height}`);
-                    console.log(`Next Rect: left=${nextRect.left}, top=${nextRect.top}, offsetHeight=${nextRect.offsetHeight}`);
-                    console.log(`箭头坐标: (${startX}, ${startY}) -> (${endX}, ${endY})`);
-                    
-                    // 检查坐标是否有效
-                    if (isNaN(startX) || isNaN(startY) || isNaN(endX) || isNaN(endY)) {
-                        console.warn("坐标值无效，跳过绘制", {startX, startY, endX, endY});
-                        continue;
-                    }
-                    
-                    // 检查坐标是否在canvas范围内
-                    if (startX < 0 || startY < 0 || endX < 0 || endY < 0 ||
-                        startX > canvas.width || startY > canvas.height || 
-                        endX > canvas.width || endY > canvas.height) {
-                        console.warn("坐标超出canvas范围", {startX, startY, endX, endY, canvasWidth: canvas.width, canvasHeight: canvas.height});
-                        continue;
-                    }
+                    console.log(`箭头从 (${startX}, ${startY}) 到 (${endX}, ${endY})`);
                     
                     // 绘制箭头
                     this.drawArrow(ctx, startX, startY, endX, endY);
@@ -411,32 +399,20 @@
             }
             
             drawArrow(ctx, fromX, fromY, toX, toY) {
-                const headLength = 10; // 箭头头部长度
-                const angle = Math.atan2(toY - fromY, toX - fromX);
+                console.log(`绘制箭头: (${fromX}, ${fromY}) -> (${toX}, ${toY})`);
                 
-                // 缩短线段，避免覆盖箭头头部
-                const dx = toX - fromX;
-                const dy = toY - fromY;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance < headLength) {
-                    // 如果距离太短，只绘制一个点
-                    ctx.beginPath();
-                    ctx.arc(fromX, fromY, 2, 0, Math.PI * 2);
-                    ctx.fillStyle = '#666';
-                    ctx.fill();
+                if (isNaN(fromX) || isNaN(fromY) || isNaN(toX) || isNaN(toY)) {
+                    console.error("坐标值无效:", {fromX, fromY, toX, toY});
                     return;
                 }
                 
-                // 计算调整后的终点（为箭头头部留出空间）
-                const ratio = (distance - headLength) / distance;
-                const adjustedToX = fromX + dx * ratio;
-                const adjustedToY = fromY + dy * ratio;
+                const headLength = 10; // 箭头头部长度
+                const angle = Math.atan2(toY - fromY, toX - fromX);
                 
                 // 绘制线条
                 ctx.beginPath();
                 ctx.moveTo(fromX, fromY);
-                ctx.lineTo(adjustedToX, adjustedToY);
+                ctx.lineTo(toX, toY);
                 ctx.strokeStyle = '#666';
                 ctx.lineWidth = 2;
                 ctx.stroke();
@@ -474,18 +450,9 @@
             linkedList.clear();
         }
 
-        // 切换调试信息显示
-        function toggleDebug() {
-            const debugInfo = document.getElementById('debugInfo');
-            if (debugInfo.style.display === 'none' || debugInfo.style.display === '') {
-                debugInfo.style.display = 'block';
-                // 更新canvas状态
-                const canvas = document.getElementById('arrowCanvas');
-                document.getElementById('canvasStatus').textContent = 
-                    canvas && canvas.getContext('2d') ? '正常' : '异常';
-            } else {
-                debugInfo.style.display = 'none';
-            }
+        // 调试绘制函数
+        function debugDraw() {
+            linkedList.drawArrows();
         }
 
         // 回车键添加节点
@@ -498,6 +465,13 @@
         // 初始化渲染
         linkedList.render();
         
+        // 监听窗口大小变化，重新绘制箭头
+        window.addEventListener('resize', function() {
+            setTimeout(() => {
+                linkedList.drawArrows();
+            }, 10);
+        });
+        
         // 页面加载完成后更新canvas状态
         window.addEventListener('load', function() {
             setTimeout(() => {
@@ -505,13 +479,6 @@
                 document.getElementById('canvasStatus').textContent = 
                     canvas && canvas.getContext('2d') ? '正常' : '异常';
             }, 100);
-        });
-        
-        // 监听窗口大小变化，重新绘制箭头
-        window.addEventListener('resize', function() {
-            setTimeout(() => {
-                linkedList.drawArrows();
-            }, 100); // 增加延迟时间，确保DOM完全更新
         });
     </script>
 </body>
