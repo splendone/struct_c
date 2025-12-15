@@ -1,10 +1,1 @@
-```
-# Logs and temp files
-*.log
-server.log
-*.tmp
-*.swp
-
-# HTML related
-debug_linked_list.html
-```
+(single_linked_list_visualization.html is a source file, and there are no build artifacts, dependencies, or temp files in the changes)
