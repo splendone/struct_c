@@ -214,14 +214,24 @@
             <canvas id="arrowCanvas"></canvas>
         </div>
         
+        <div class="debug-info" id="debugInfo" style="display:none;">
+            调试信息：<br>
+            - Canvas状态: <span id="canvasStatus">未知</span><br>
+            - 节点数量: <span id="nodeCount">0</span><br>
+            - Arrow函数调用: <span id="arrowCallCount">0</span><br>
+        </div>
+        
         <div class="controls">
             <input type="text" id="dataInput" placeholder="输入数据" />
             <button onclick="addNode()">添加节点</button>
             <button onclick="clearList()">清空列表</button>
+            <button onclick="toggleDebug()">切换调试</button>
         </div>
     </div>
 
     <script>
+        let arrowCallCount = 0; // 调试计数器
+
         // 单链表节点构造函数
         class ListNode {
             constructor(data) {
@@ -305,8 +315,11 @@
                     index++;
                 }
                 
+                document.getElementById('nodeCount').textContent = index;
+                
                 // 延迟绘制箭头以确保DOM元素已渲染
                 setTimeout(() => {
+                    console.log("开始绘制箭头...");
                     this.drawArrows();
                 }, 10);
             }
@@ -315,9 +328,15 @@
                 const canvas = document.getElementById('arrowCanvas');
                 const ctx = canvas.getContext('2d');
                 
-                // 重置canvas大小
-                canvas.width = canvas.offsetWidth;
-                canvas.height = canvas.offsetHeight;
+                if (!ctx) {
+                    console.error("无法获取canvas上下文");
+                    return;
+                }
+                
+                // 重置canvas大小 - 使用 clientWidth/clientHeight 作为备选
+                const container = document.querySelector('.canvas-container');
+                canvas.width = container.clientWidth || canvas.offsetWidth || 800;
+                canvas.height = container.clientHeight || canvas.offsetHeight || 200;
                 
                 // 清除画布
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -337,18 +356,27 @@
                     // 获取指针部分的位置（箭头起点）
                     const currentRect = currentNode.querySelector('.pointer-part').getBoundingClientRect();
                     const containerRect = document.getElementById('listContainer').getBoundingClientRect();
+                    const canvasRect = canvas.getBoundingClientRect();
                     
-                    // 计算相对于容器的位置
-                    const startX = currentRect.left - containerRect.left + currentRect.width;
-                    const startY = currentRect.top - containerRect.top + currentRect.height / 2;
+                    // 计算相对于canvas的位置
+                    const startX = currentRect.left - canvasRect.left + currentRect.width;
+                    const startY = currentRect.top - canvasRect.top + currentRect.height / 2;
                     
                     // 获取下一个节点的左侧位置（箭头终点）
                     const nextRect = nextNode.getBoundingClientRect();
-                    const endX = nextRect.left - containerRect.left;
-                    const endY = nextRect.top - containerRect.top + nextRect.offsetHeight / 2;
+                    const endX = nextRect.left - canvasRect.left;
+                    const endY = nextRect.top - canvasRect.top + nextRect.offsetHeight / 2;
+                    
+                    // 检查坐标是否有效
+                    if (isNaN(startX) || isNaN(startY) || isNaN(endX) || isNaN(endY)) {
+                        console.warn("坐标值无效，跳过绘制", {startX, startY, endX, endY});
+                        continue;
+                    }
                     
                     // 绘制箭头
                     this.drawArrow(ctx, startX, startY, endX, endY);
+                    arrowCallCount++;
+                    document.getElementById('arrowCallCount').textContent = arrowCallCount;
                 }
             }
             
@@ -356,10 +384,29 @@
                 const headLength = 10; // 箭头头部长度
                 const angle = Math.atan2(toY - fromY, toX - fromX);
                 
+                // 缩短线段，避免覆盖箭头头部
+                const dx = toX - fromX;
+                const dy = toY - fromY;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                if (distance < headLength) {
+                    // 如果距离太短，只绘制一个点
+                    ctx.beginPath();
+                    ctx.arc(fromX, fromY, 2, 0, Math.PI * 2);
+                    ctx.fillStyle = '#666';
+                    ctx.fill();
+                    return;
+                }
+                
+                // 计算调整后的终点（为箭头头部留出空间）
+                const ratio = (distance - headLength) / distance;
+                const adjustedToX = fromX + dx * ratio;
+                const adjustedToY = fromY + dy * ratio;
+                
                 // 绘制线条
                 ctx.beginPath();
                 ctx.moveTo(fromX, fromY);
-                ctx.lineTo(toX, toY);
+                ctx.lineTo(adjustedToX, adjustedToY);
                 ctx.strokeStyle = '#666';
                 ctx.lineWidth = 2;
                 ctx.stroke();
@@ -397,6 +444,20 @@
             linkedList.clear();
         }
 
+        // 切换调试信息显示
+        function toggleDebug() {
+            const debugInfo = document.getElementById('debugInfo');
+            if (debugInfo.style.display === 'none' || debugInfo.style.display === '') {
+                debugInfo.style.display = 'block';
+                // 更新canvas状态
+                const canvas = document.getElementById('arrowCanvas');
+                document.getElementById('canvasStatus').textContent = 
+                    canvas && canvas.getContext('2d') ? '正常' : '异常';
+            } else {
+                debugInfo.style.display = 'none';
+            }
+        }
+
         // 回车键添加节点
         document.getElementById('dataInput').addEventListener('keypress', function(event) {
             if (event.key === 'Enter') {
@@ -406,6 +467,15 @@
 
         // 初始化渲染
         linkedList.render();
+        
+        // 页面加载完成后更新canvas状态
+        window.addEventListener('load', function() {
+            setTimeout(() => {
+                const canvas = document.getElementById('arrowCanvas');
+                document.getElementById('canvasStatus').textContent = 
+                    canvas && canvas.getContext('2d') ? '正常' : '异常';
+            }, 100);
+        });
         
         // 监听窗口大小变化，重新绘制箭头
         window.addEventListener('resize', function() {
