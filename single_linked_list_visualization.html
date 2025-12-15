@@ -84,6 +84,21 @@
             color: #666;
         }
         
+        .canvas-container {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            margin-top: 20px;
+        }
+        
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+        
         .null-pointer {
             background-color: #f44336;
             color: white;
@@ -195,6 +210,9 @@
         <div class="list-container" id="listContainer">
             <!-- 节点将通过JavaScript动态生成 -->
         </div>
+        <div class="canvas-container">
+            <canvas id="arrowCanvas"></canvas>
+        </div>
         
         <div class="controls">
             <input type="text" id="dataInput" placeholder="输入数据" />
@@ -243,15 +261,18 @@
                 
                 if (!this.head) {
                     container.innerHTML = '<p style="color: #666;">链表为空，请添加节点</p>';
+                    this.drawArrows(); // 清除画布
                     return;
                 }
                 
                 let current = this.head;
                 let index = 0;
+                const nodeElements = [];
                 
                 while (current !== null) {
                     const nodeElement = document.createElement('div');
                     nodeElement.className = 'node';
+                    nodeElement.setAttribute('data-index', index); // 设置索引属性
                     
                     // 数据部分
                     const dataPart = document.createElement('div');
@@ -264,33 +285,93 @@
                     
                     if (current.next === null) {
                         // 最后一个节点，显示NULL
-                        pointerPart.innerHTML = 'NULL<div class="null-pointer">链表结束</div>';
+                        pointerPart.textContent = 'NULL';
+                        const nullLabel = document.createElement('div');
+                        nullLabel.className = 'null-pointer';
+                        nullLabel.textContent = '链表结束';
+                        pointerPart.appendChild(nullLabel);
                     } else {
-                        // 非最后一个节点，显示箭头
-                        pointerPart.innerHTML = '→<div class="arrow">→</div>';
+                        // 非最后一个节点，不显示箭头文字，由canvas绘制
+                        pointerPart.textContent = '';
                     }
                     
                     nodeElement.appendChild(dataPart);
                     nodeElement.appendChild(pointerPart);
                     
                     container.appendChild(nodeElement);
-                    
-                    // 如果不是最后一个节点，添加连接线
-                    if (current.next !== null) {
-                        const arrow = document.createElement('div');
-                        arrow.style.position = 'relative';
-                        arrow.style.width = '40px';
-                        arrow.style.height = '40px';
-                        arrow.style.display = 'flex';
-                        arrow.style.alignItems = 'center';
-                        arrow.style.justifyContent = 'center';
-                        arrow.innerHTML = '<div style="font-size: 24px; color: #666;">→</div>';
-                        container.appendChild(arrow);
-                    }
+                    nodeElements.push(nodeElement);
                     
                     current = current.next;
                     index++;
                 }
+                
+                // 延迟绘制箭头以确保DOM元素已渲染
+                setTimeout(() => {
+                    this.drawArrows();
+                }, 10);
+            }
+            
+            drawArrows() {
+                const canvas = document.getElementById('arrowCanvas');
+                const ctx = canvas.getContext('2d');
+                
+                // 重置canvas大小
+                canvas.width = canvas.offsetWidth;
+                canvas.height = canvas.offsetHeight;
+                
+                // 清除画布
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // 获取所有节点元素
+                const nodes = document.querySelectorAll('.node');
+                
+                if (nodes.length <= 1) {
+                    return; // 只有一个或没有节点时不需要绘制箭头
+                }
+                
+                // 绘制箭头连接
+                for (let i = 0; i < nodes.length - 1; i++) {
+                    const currentNode = nodes[i];
+                    const nextNode = nodes[i + 1];
+                    
+                    // 获取指针部分的位置（箭头起点）
+                    const currentRect = currentNode.querySelector('.pointer-part').getBoundingClientRect();
+                    const containerRect = document.getElementById('listContainer').getBoundingClientRect();
+                    
+                    // 计算相对于容器的位置
+                    const startX = currentRect.left - containerRect.left + currentRect.width;
+                    const startY = currentRect.top - containerRect.top + currentRect.height / 2;
+                    
+                    // 获取下一个节点的左侧位置（箭头终点）
+                    const nextRect = nextNode.getBoundingClientRect();
+                    const endX = nextRect.left - containerRect.left;
+                    const endY = nextRect.top - containerRect.top + nextRect.offsetHeight / 2;
+                    
+                    // 绘制箭头
+                    this.drawArrow(ctx, startX, startY, endX, endY);
+                }
+            }
+            
+            drawArrow(ctx, fromX, fromY, toX, toY) {
+                const headLength = 10; // 箭头头部长度
+                const angle = Math.atan2(toY - fromY, toX - fromX);
+                
+                // 绘制线条
+                ctx.beginPath();
+                ctx.moveTo(fromX, fromY);
+                ctx.lineTo(toX, toY);
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // 绘制箭头头部
+                ctx.beginPath();
+                ctx.moveTo(toX, toY);
+                ctx.lineTo(toX - headLength * Math.cos(angle - Math.PI / 6), toY - headLength * Math.sin(angle - Math.PI / 6));
+                ctx.lineTo(toX - headLength * Math.cos(angle + Math.PI / 6), toY - headLength * Math.sin(angle + Math.PI / 6));
+                ctx.closePath();
+                ctx.fillStyle = '#666';
+                ctx.fill();
             }
         }
 
@@ -325,6 +406,13 @@
 
         // 初始化渲染
         linkedList.render();
+        
+        // 监听窗口大小变化，重新绘制箭头
+        window.addEventListener('resize', function() {
+            setTimeout(() => {
+                linkedList.drawArrows();
+            }, 10);
+        });
     </script>
 </body>
 </html>
