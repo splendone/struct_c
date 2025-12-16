@@ -365,11 +365,23 @@ function highlightCode(highlightInfo) {
     codeDisplay.innerHTML = lines.join('\n');
   }
   
-  // 高亮特定变量
-  highlightInfo.variables.forEach(variable => {
-    const regex = new RegExp(`(${variable})`, 'g');
-    codeDisplay.innerHTML = codeDisplay.innerHTML.replace(regex, '<span class="highlighted-variable">$1</span>');
-  });
+  // 只对指定行中的特定变量进行高亮（而不是在整个代码中查找）
+  if (highlightInfo.line !== -1 && highlightInfo.variables.length > 0) {
+    const lines = codeDisplay.innerHTML.split('\n');
+    if (highlightInfo.line >= 1 && highlightInfo.line <= lines.length) {
+      const lineIndex = highlightInfo.line - 1;
+      let lineContent = lines[lineIndex];
+      
+      // 只对当前行中的变量进行高亮
+      highlightInfo.variables.forEach(variable => {
+        const regex = new RegExp(`(${variable})`, 'g');
+        lineContent = lineContent.replace(regex, '<span class="highlighted-variable">$1</span>');
+      });
+      
+      lines[lineIndex] = lineContent;
+      codeDisplay.innerHTML = lines.join('\n');
+    }
+  }
 }
 
 // 更新信息面板
@@ -379,23 +391,104 @@ function updateInfo(description) {
 
 // 执行下一步动画
 function nextStep() {
-  if (animationState.step < animationSteps.length) {
+  if (animationState.step < animationSteps.length - 1) {
     const step = animationSteps[animationState.step];
     step.action();
     highlightCode(step.highlight);
     updateInfo(step.description);
     animationState.step++;
-  } else {
-    stopAnimation();
+    
+    // 显示下一步的信息
+    if (animationState.step < animationSteps.length) {
+      const nextStep = animationSteps[animationState.step];
+      highlightCode(nextStep.highlight);
+      updateInfo(nextStep.description);
+    }
+  } else if (animationState.step === animationSteps.length - 1) {
+    // 执行最后一步
+    const step = animationSteps[animationState.step];
+    step.action();
+    highlightCode(step.highlight);
+    updateInfo(step.description);
+    animationState.step++;
+  }
+  
+  updateButtonStates();
+}
+
+// 执行上一步动画
+function prevStep() {
+  if (animationState.step > 0) {
+    animationState.step--;
+    resetAnimationToStep(animationState.step);
+  }
+  
+  updateButtonStates();
+}
+
+// 重置动画到指定步骤
+function resetAnimationToStep(stepNum) {
+  // 重置到初始状态
+  initializeAnimation();
+  
+  // 重新执行到指定步骤
+  for (let i = 0; i < stepNum; i++) {
+    const step = animationSteps[i];
+    step.action();
+  }
+  
+  // 高亮当前步骤
+  if (stepNum < animationSteps.length) {
+    highlightCode(animationSteps[stepNum].highlight);
+    updateInfo(animationSteps[stepNum].description);
   }
 }
+
+// 更新按钮状态
+function updateButtonStates() {
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
+  const playBtn = document.getElementById('playBtn');
+  
+  // 上一步按钮状态
+  prevBtn.disabled = (animationState.step <= 0);
+  
+  // 下一步按钮状态
+  nextBtn.disabled = (animationState.step >= animationSteps.length);
+  
+  // 播放按钮状态
+  playBtn.disabled = animationState.isPlaying || (animationState.step >= animationSteps.length);
+}
+
+// 事件监听器
+document.addEventListener('DOMContentLoaded', () => {
+  // 初始化代码显示
+  document.getElementById('codeDisplay').textContent = codeLines.join('\n');
+  
+  // 初始化动画
+  initializeAnimation();
+
+  // 绑定按钮事件
+  document.getElementById('playBtn').addEventListener('click', startAnimation);
+  document.getElementById('pauseBtn').addEventListener('click', pauseAnimation);
+  document.getElementById('resetBtn').addEventListener('click', resetAnimation);
+  document.getElementById('prevBtn').addEventListener('click', prevStep);
+  document.getElementById('nextBtn').addEventListener('click', nextStep);
+
+  // 速度选择事件
+  document.getElementById('speedSelect').addEventListener('change', (e) => {
+    animationState.speed = parseInt(e.target.value);
+  });
+  
+  // 初始化按钮状态
+  updateButtonStates();
+});
 
 // 开始动画
 function startAnimation() {
   if (animationState.isPlaying) return;
   
   animationState.isPlaying = true;
-  document.getElementById('playBtn').disabled = true;
   
   animationState.intervalId = setInterval(() => {
     nextStep();
@@ -403,6 +496,8 @@ function startAnimation() {
       stopAnimation();
     }
   }, animationState.speed);
+  
+  updateButtonStates();
 }
 
 // 暂停动画
