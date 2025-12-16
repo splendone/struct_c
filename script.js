@@ -108,162 +108,185 @@ const animationSteps = [
 // 初始化动画
 function initializeAnimation() {
   // 清空容器
-  document.getElementById('listContainer').innerHTML = '';
-  document.getElementById('memoryContainer').innerHTML = '';
+  const listContainer = document.getElementById('listContainer');
+  const memoryContainer = document.getElementById('memoryContainer');
+  
+  if(listContainer) {
+    listContainer.innerHTML = '';
+  }
+  if(memoryContainer) {
+    memoryContainer.innerHTML = '';
+  }
   
   // 显示初始链表
-  const listContainer = document.getElementById('listContainer');
-  initialList.forEach((node, index) => {
-    const nodeElement = document.createElement('div');
-    nodeElement.className = 'node';
-    nodeElement.id = node.id;
-    
-    nodeElement.innerHTML = `
-      <div class="node-data">${node.data}</div>
-      <div class="node-next">${node.next === 'NULL' ? '∅' : node.next}</div>
-    `;
-    
-    listContainer.appendChild(nodeElement);
-    
-    // 添加箭头（除了最后一个节点）
-    if (index < initialList.length - 1) {
-      const arrow = document.createElement('div');
-      arrow.className = 'pointer-arrow';
-      nodeElement.appendChild(arrow);
-    }
-  });
+  if(listContainer) {
+    initialList.forEach((node, index) => {
+      const nodeElement = document.createElement('div');
+      nodeElement.className = 'node';
+      nodeElement.id = node.id;
+      
+      nodeElement.innerHTML = `
+        <div class="node-data">${node.data}</div>
+        <div class="node-next">${node.next === 'NULL' ? '∅' : node.next}</div>
+      `;
+      
+      listContainer.appendChild(nodeElement);
+      
+      // 添加箭头（除了最后一个节点）
+      if (index < initialList.length - 1) {
+        const arrow = document.createElement('div');
+        arrow.className = 'pointer-arrow';
+        nodeElement.appendChild(arrow);
+      }
+    });
+  }
   
   // 显示初始内存视图
-  const memoryContainer = document.getElementById('memoryContainer');
-  initialList.forEach(node => {
-    const block = document.createElement('div');
-    block.className = 'memory-block';
-    block.innerHTML = `
-      <div class="memory-address">${node.address}</div>
+  if(memoryContainer) {
+    initialList.forEach(node => {
+      const block = document.createElement('div');
+      block.className = 'memory-block';
+      block.innerHTML = `
+        <div class="memory-address">${node.address}</div>
+        <div class="memory-content">
+          <div class="memory-field">
+            <div class="memory-field-name">data:</div>
+            <div class="memory-field-value">${node.data}</div>
+          </div>
+          <div class="memory-field">
+            <div class="memory-field-name">next:</div>
+            <div class="memory-field-value">${node.next === 'NULL' ? '∅' : node.next}</div>
+          </div>
+        </div>
+      `;
+      memoryContainer.appendChild(block);
+    });
+    
+    // 添加head指针
+    const headBlock = document.createElement('div');
+    headBlock.className = 'memory-block';
+    headBlock.innerHTML = `
+      <div class="memory-address">head</div>
       <div class="memory-content">
         <div class="memory-field">
-          <div class="memory-field-name">data:</div>
-          <div class="memory-field-value">${node.data}</div>
-        </div>
-        <div class="memory-field">
-          <div class="memory-field-name">next:</div>
-          <div class="memory-field-value">${node.next === 'NULL' ? '∅' : node.next}</div>
+          <div class="memory-field-name">value:</div>
+          <div class="memory-field-value">${initialList[0].address}</div>
         </div>
       </div>
     `;
-    memoryContainer.appendChild(block);
-  });
-  
-  // 添加head指针
-  const headBlock = document.createElement('div');
-  headBlock.className = 'memory-block';
-  headBlock.innerHTML = `
-    <div class="memory-address">head</div>
-    <div class="memory-content">
-      <div class="memory-field">
-        <div class="memory-field-name">value:</div>
-        <div class="memory-field-value">${initialList[0].address}</div>
-      </div>
-    </div>
-  `;
-  memoryContainer.appendChild(headBlock);
+    memoryContainer.appendChild(headBlock);
+  }
 }
 
 // 创建新节点
 function createNewNode() {
   const memoryContainer = document.getElementById('memoryContainer');
-  const newNodeBlock = document.createElement('div');
-  newNodeBlock.className = 'memory-block fade-in';
-  newNodeBlock.id = 'newNodeBlock';
-  newNodeBlock.innerHTML = `
-    <div class="memory-address">0x1020 (newNode)</div>
-    <div class="memory-content">
-      <div class="memory-field">
-        <div class="memory-field-name">data:</div>
-        <div class="memory-field-value">?</div>
+  if(memoryContainer) {
+    const newNodeBlock = document.createElement('div');
+    newNodeBlock.className = 'memory-block fade-in';
+    newNodeBlock.id = 'newNodeBlock';
+    newNodeBlock.innerHTML = `
+      <div class="memory-address">0x1020 (newNode)</div>
+      <div class="memory-content">
+        <div class="memory-field">
+          <div class="memory-field-name">data:</div>
+          <div class="memory-field-value">?</div>
+        </div>
+        <div class="memory-field">
+          <div class="memory-field-name">next:</div>
+          <div class="memory-field-value">∅</div>
+        </div>
       </div>
-      <div class="memory-field">
-        <div class="memory-field-name">next:</div>
-        <div class="memory-field-value">∅</div>
+    `;
+    memoryContainer.appendChild(newNodeBlock);
+    
+    // 添加newNode变量
+    const newNodeVarBlock = document.createElement('div');
+    newNodeVarBlock.className = 'memory-block';
+    newNodeVarBlock.innerHTML = `
+      <div class="memory-address">newNode</div>
+      <div class="memory-content">
+        <div class="memory-field">
+          <div class="memory-field-name">value:</div>
+          <div class="memory-field-value">0x1020</div>
+        </div>
       </div>
-    </div>
-  `;
-  memoryContainer.appendChild(newNodeBlock);
-  
-  // 添加newNode变量
-  const newNodeVarBlock = document.createElement('div');
-  newNodeVarBlock.className = 'memory-block';
-  newNodeVarBlock.innerHTML = `
-    <div class="memory-address">newNode</div>
-    <div class="memory-content">
-      <div class="memory-field">
-        <div class="memory-field-name">value:</div>
-        <div class="memory-field-value">0x1020</div>
-      </div>
-    </div>
-  `;
-  memoryContainer.appendChild(newNodeVarBlock);
+    `;
+    memoryContainer.appendChild(newNodeVarBlock);
+  }
 }
 
 // 设置新节点数据
 function setNewNodeData() {
   const dataField = document.querySelector('#newNodeBlock .memory-field-value:first-child');
-  dataField.textContent = '2'; // 插入的值是2
-  dataField.classList.add('highlight-pulse');
-  
-  setTimeout(() => {
-    dataField.classList.remove('highlight-pulse');
-  }, 1000);
+  if(dataField) {
+    dataField.textContent = document.getElementById('insertValue') ? document.getElementById('insertValue').value : '2'; // 使用用户输入或默认值
+    dataField.classList.add('highlight-pulse');
+    
+    setTimeout(() => {
+      dataField.classList.remove('highlight-pulse');
+    }, 1000);
+  }
 }
 
 // 设置新节点next指针
 function setNewNodeNext() {
   const nextField = document.querySelector('#newNodeBlock .memory-field-value:last-child');
-  nextField.textContent = '∅';
-  nextField.classList.add('highlight-pulse');
-  
-  setTimeout(() => {
-    nextField.classList.remove('highlight-pulse');
-  }, 1000);
+  if(nextField) {
+    nextField.textContent = '∅';
+    nextField.classList.add('highlight-pulse');
+    
+    setTimeout(() => {
+      nextField.classList.remove('highlight-pulse');
+    }, 1000);
+  }
 }
 
 // 检查头部插入
 function checkHeadInsertion() {
   const infoPanel = document.getElementById('operationInfo');
-  infoPanel.innerHTML = 'pos = 2, 不等于 1，所以不执行头部插入';
-  
-  // 高亮显示pos变量
-  setTimeout(() => {
-    const posIndicator = document.createElement('span');
-    posIndicator.style.backgroundColor = 'lightblue';
-    posIndicator.textContent = 'pos(2)';
-    infoPanel.appendChild(posIndicator);
-  }, 300);
+  if(infoPanel) {
+    const posInput = document.getElementById('insertPosition');
+    const posValue = posInput ? parseInt(posInput.value) : 2; // 默认位置为2
+    infoPanel.innerHTML = `pos = ${posValue}, ${posValue === 1 ? '等于' : '不等于'} 1，${posValue === 1 ? '执行' : '不执行'}头部插入`;
+    
+    // 高亮显示pos变量
+    setTimeout(() => {
+      const posIndicator = document.createElement('span');
+      posIndicator.style.backgroundColor = 'lightblue';
+      posIndicator.textContent = `pos(${posValue})`;
+      infoPanel.appendChild(posIndicator);
+    }, 300);
+  }
 }
 
 // 设置current指针
 function setCurrentToHead() {
   const memoryContainer = document.getElementById('memoryContainer');
-  const currentBlock = document.createElement('div');
-  currentBlock.className = 'memory-block';
-  currentBlock.innerHTML = `
-    <div class="memory-address">current</div>
-    <div class="memory-content">
-      <div class="memory-field">
-        <div class="memory-field-name">value:</div>
-        <div class="memory-field-value">0x1000</div>
+  if(memoryContainer) {
+    const currentBlock = document.createElement('div');
+    currentBlock.className = 'memory-block';
+    currentBlock.innerHTML = `
+      <div class="memory-address">current</div>
+      <div class="memory-content">
+        <div class="memory-field">
+          <div class="memory-field-name">value:</div>
+          <div class="memory-field-value">0x1000</div>
+        </div>
       </div>
-    </div>
-  `;
-  memoryContainer.appendChild(currentBlock);
-  
-  // 高亮显示current指向
-  const firstNode = document.getElementById('node1');
-  firstNode.classList.add('highlight-pulse');
-  
-  setTimeout(() => {
-    firstNode.classList.remove('highlight-pulse');
-  }, 1000);
+    `;
+    memoryContainer.appendChild(currentBlock);
+    
+    // 高亮显示current指向
+    const firstNode = document.getElementById('node1');
+    if(firstNode) {
+      firstNode.classList.add('highlight-pulse');
+      
+      setTimeout(() => {
+        firstNode.classList.remove('highlight-pulse');
+      }, 1000);
+    }
+  }
 }
 
 // 设置newNode->next = current->next
@@ -273,63 +296,86 @@ function setNewNodeNextToCurrentNext() {
   
   // 显示计算过程
   const infoPanel = document.getElementById('operationInfo');
-  infoPanel.innerHTML = `计算右侧值: current->next = ${currentNextValue}`;
+  if(infoPanel) {
+    infoPanel.innerHTML = `计算右侧值: current->next = ${currentNextValue}`;
+  }
   
   // 更新newNode的next字段
-  setTimeout(() => {
-    newNodeNextField.textContent = currentNextValue;
-    newNodeNextField.classList.add('highlight-pulse');
-    infoPanel.innerHTML += `<br>赋值给左侧: newNode->next = ${currentNextField}`;
-  }, 500);
-  
-  setTimeout(() => {
-    newNodeNextField.classList.remove('highlight-pulse');
-  }, 1500);
+  if(newNodeNextField) {
+    setTimeout(() => {
+      newNodeNextField.textContent = currentNextValue;
+      newNodeNextField.classList.add('highlight-pulse');
+      if(infoPanel) {
+        infoPanel.innerHTML += `<br>赋值给左侧: newNode->next = ${currentNextValue}`;
+      }
+    }, 500);
+    
+    setTimeout(() => {
+      newNodeNextField.classList.remove('highlight-pulse');
+    }, 1500);
+  }
 }
 
 // 设置current->next = newNode
 function setCurrentNextToNewNode() {
   const listContainer = document.getElementById('listContainer');
-  const newNodeElement = document.createElement('div');
-  newNodeElement.className = 'node fade-in';
-  newNodeElement.id = 'newNodeElement';
-  
-  newNodeElement.innerHTML = `
-    <div class="node-data">2</div>
-    <div class="node-next">0x1008</div>
-  `;
-  
-  // 在正确位置插入新节点
-  const node1 = document.getElementById('node1');
-  listContainer.insertBefore(newNodeElement, node1.nextSibling);
-  
-  // 添加指向新节点的箭头
-  const arrow = document.createElement('div');
-  arrow.className = 'pointer-arrow';
-  newNodeElement.appendChild(arrow);
-  
-  // 更新node1的next值
-  const node1Next = node1.querySelector('.node-next');
-  node1Next.textContent = '0x1020'; // newNode的地址
-  
-  // 更新内存视图中的current->next
-  const currentBlock = Array.from(document.querySelectorAll('.memory-block'))
-    .find(block => block.innerHTML.includes('current'));
-  
-  if (currentBlock) {
-    const valueElement = currentBlock.querySelector('.memory-field-value');
-    valueElement.textContent = '0x1020';
+  if(listContainer) {
+    const newNodeElement = document.createElement('div');
+    newNodeElement.className = 'node fade-in';
+    newNodeElement.id = 'newNodeElement';
+    
+    const insertValue = document.getElementById('insertValue') ? document.getElementById('insertValue').value : '2'; // 使用用户输入或默认值
+    const insertPos = document.getElementById('insertPosition') ? parseInt(document.getElementById('insertPosition').value) : 2; // 使用用户输入或默认值
+    
+    newNodeElement.innerHTML = `
+      <div class="node-data">${insertValue}</div>
+      <div class="node-next">0x1008</div>
+    `;
+    
+    // 在正确位置插入新节点
+    const node1 = document.getElementById('node1');
+    if(node1) {
+      listContainer.insertBefore(newNodeElement, node1.nextSibling);
+      
+      // 添加指向新节点的箭头
+      const arrow = document.createElement('div');
+      arrow.className = 'pointer-arrow';
+      newNodeElement.appendChild(arrow);
+      
+      // 更新node1的next值
+      const node1Next = node1.querySelector('.node-next');
+      if(node1Next) {
+        node1Next.textContent = '0x1020'; // newNode的地址
+      }
+    }
+    
+    // 更新内存视图中的current->next
+    const currentBlock = Array.from(document.querySelectorAll('.memory-block'))
+      .find(block => block.innerHTML.includes('current'));
+    
+    if (currentBlock) {
+      const valueElement = currentBlock.querySelector('.memory-field-value');
+      if(valueElement) {
+        valueElement.textContent = '0x1020';
+      }
+    }
+    
+    // 更新newNode内存块的地址显示
+    const newNodeAddr = document.querySelector('#newNodeBlock .memory-address');
+    if(newNodeAddr) {
+      newNodeAddr.textContent = '0x1020 (newNode)';
+    }
   }
-  
-  // 更新newNode内存块的地址显示
-  const newNodeAddr = document.querySelector('#newNodeBlock .memory-address');
-  newNodeAddr.textContent = '0x1020 (newNode)';
 }
 
 // 显示最终列表
 function showFinalList() {
   const infoPanel = document.getElementById('operationInfo');
-  infoPanel.innerHTML = '插入完成！最终链表为: 1 → 2 → 3 → 5 → NULL';
+  if(infoPanel) {
+    const insertValue = document.getElementById('insertValue') ? document.getElementById('insertValue').value : '2'; // 使用用户输入或默认值
+    const insertPos = document.getElementById('insertPosition') ? parseInt(document.getElementById('insertPosition').value) : 2; // 使用用户输入或默认值
+    infoPanel.innerHTML = `插入完成！在位置 ${insertPos} 插入值 ${insertValue}，最终链表为: 1 → ${insertValue} → 3 → 5 → NULL`;
+  }
   
   // 高亮整个链表
   const nodes = document.querySelectorAll('.node');
@@ -347,6 +393,8 @@ function showFinalList() {
 // 高亮代码行和变量
 function highlightCode(highlightInfo) {
   const codeDisplay = document.getElementById('codeDisplay');
+  
+  if(!codeDisplay) return;
   
   // 清除之前的高亮
   codeDisplay.innerHTML = codeLines.map(line => {
@@ -386,7 +434,10 @@ function highlightCode(highlightInfo) {
 
 // 更新信息面板
 function updateInfo(description) {
-  document.getElementById('operationInfo').textContent = description;
+  const infoPanel = document.getElementById('operationInfo');
+  if(infoPanel) {
+    infoPanel.textContent = description;
+  }
 }
 
 // 执行下一步动画
@@ -451,38 +502,20 @@ function updateButtonStates() {
   const playBtn = document.getElementById('playBtn');
   
   // 上一步按钮状态
-  prevBtn.disabled = (animationState.step <= 0);
+  if(prevBtn) {
+    prevBtn.disabled = (animationState.step <= 0);
+  }
   
   // 下一步按钮状态
-  nextBtn.disabled = (animationState.step >= animationSteps.length);
+  if(nextBtn) {
+    nextBtn.disabled = (animationState.step >= animationSteps.length);
+  }
   
   // 播放按钮状态
-  playBtn.disabled = animationState.isPlaying || (animationState.step >= animationSteps.length);
+  if(playBtn) {
+    playBtn.disabled = animationState.isPlaying || (animationState.step >= animationSteps.length);
+  }
 }
-
-// 事件监听器
-document.addEventListener('DOMContentLoaded', () => {
-  // 初始化代码显示
-  document.getElementById('codeDisplay').textContent = codeLines.join('\n');
-  
-  // 初始化动画
-  initializeAnimation();
-
-  // 绑定按钮事件
-  document.getElementById('playBtn').addEventListener('click', startAnimation);
-  document.getElementById('pauseBtn').addEventListener('click', pauseAnimation);
-  document.getElementById('resetBtn').addEventListener('click', resetAnimation);
-  document.getElementById('prevBtn').addEventListener('click', prevStep);
-  document.getElementById('nextBtn').addEventListener('click', nextStep);
-
-  // 速度选择事件
-  document.getElementById('speedSelect').addEventListener('change', (e) => {
-    animationState.speed = parseInt(e.target.value);
-  });
-  
-  // 初始化按钮状态
-  updateButtonStates();
-});
 
 // 开始动画
 function startAnimation() {
@@ -506,7 +539,10 @@ function pauseAnimation() {
   
   clearInterval(animationState.intervalId);
   animationState.isPlaying = false;
-  document.getElementById('playBtn').disabled = false;
+  const playBtn = document.getElementById('playBtn');
+  if(playBtn) {
+    playBtn.disabled = false;
+  }
 }
 
 // 停止动画
@@ -514,7 +550,10 @@ function stopAnimation() {
   clearInterval(animationState.intervalId);
   animationState.isPlaying = false;
   animationState.step = 0;
-  document.getElementById('playBtn').disabled = false;
+  const playBtn = document.getElementById('playBtn');
+  if(playBtn) {
+    playBtn.disabled = false;
+  }
 }
 
 // 重置动画
@@ -527,27 +566,49 @@ function resetAnimation() {
   
   // 清除代码高亮
   const codeDisplay = document.getElementById('codeDisplay');
-  codeDisplay.innerHTML = codeLines.join('\n');
+  if(codeDisplay) {
+    codeDisplay.innerHTML = codeLines.join('\n');
+  }
   
   // 清除信息面板
-  document.getElementById('operationInfo').textContent = '点击“播放动画”开始演示';
+  const infoPanel = document.getElementById('operationInfo');
+  if(infoPanel) {
+    infoPanel.textContent = '点击"播放动画"开始演示';
+  }
 }
 
 // 事件监听器
 document.addEventListener('DOMContentLoaded', () => {
   // 初始化代码显示
-  document.getElementById('codeDisplay').textContent = codeLines.join('\n');
+  const codeDisplay = document.getElementById('codeDisplay');
+  if(codeDisplay) {
+    codeDisplay.textContent = codeLines.join('\n');
+  }
   
   // 初始化动画
   initializeAnimation();
-  
+
   // 绑定按钮事件
-  document.getElementById('playBtn').addEventListener('click', startAnimation);
-  document.getElementById('pauseBtn').addEventListener('click', pauseAnimation);
-  document.getElementById('resetBtn').addEventListener('click', resetAnimation);
+  const playBtn = document.getElementById('playBtn');
+  const pauseBtn = document.getElementById('pauseBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const prevBtn = document.getElementById('prevBtn');
+  const nextBtn = document.getElementById('nextBtn');
   
+  if(playBtn) playBtn.addEventListener('click', startAnimation);
+  if(pauseBtn) pauseBtn.addEventListener('click', pauseAnimation);
+  if(resetBtn) resetBtn.addEventListener('click', resetAnimation);
+  if(prevBtn) prevBtn.addEventListener('click', prevStep);
+  if(nextBtn) nextBtn.addEventListener('click', nextStep);
+
   // 速度选择事件
-  document.getElementById('speedSelect').addEventListener('change', (e) => {
-    animationState.speed = parseInt(e.target.value);
-  });
+  const speedSelect = document.getElementById('speedSelect');
+  if(speedSelect) {
+    speedSelect.addEventListener('change', (e) => {
+      animationState.speed = parseInt(e.target.value);
+    });
+  }
+  
+  // 初始化按钮状态
+  updateButtonStates();
 });
