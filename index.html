@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <title>单链表插入操作动画</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="container">
+    <h1>单链表插入操作动画演示</h1>
+    
+    <div class="controls">
+      <button id="playBtn">播放动画</button>
+      <button id="pauseBtn">暂停</button>
+      <button id="resetBtn">重置</button>
+      <label>动画速度: </label>
+      <select id="speedSelect">
+        <option value="1000">慢速</option>
+        <option value="500" selected>中速</option>
+        <option value="200">快速</option>
+      </select>
+    </div>
+    
+    <div class="animation-container">
+      <!-- 代码区域 -->
+      <div class="code-section">
+        <h3>代码执行</h3>
+        <pre id="codeDisplay"></pre>
+      </div>
+      
+      <!-- 链表动画区域 -->
+      <div class="list-animation">
+        <h3>链表结构</h3>
+        <div id="listContainer"></div>
+      </div>
+      
+      <!-- 内存视图 -->
+      <div class="memory-view">
+        <h3>内存视图</h3>
+        <div id="memoryContainer"></div>
+      </div>
+    </div>
+    
+    <div class="info-panel">
+      <h3>操作说明</h3>
+      <div id="operationInfo">点击“播放动画”开始演示</div>
+    </div>
+  </div>
+  
+  <script src="script.js"></script>
+</body>
+</html>
